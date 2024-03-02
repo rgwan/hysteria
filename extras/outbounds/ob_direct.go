@@ -358,7 +358,16 @@ func (u *directOutboundUDPConn) Close() error {
 func (d *directOutbound) UDP(reqAddr *AddrEx) (UDPConn, error) {
 	if d.BindIP4 == nil && d.BindIP6 == nil {
 		// No bind address specified, use default dual stack implementation
-		c, err := net.ListenUDP("udp", nil)
+		var c *net.UDPConn
+		var err error
+		if reqAddr.Port > 4780 && reqAddr.Port < 4790 {
+			c, err = net.ListenUDP("udp", &net.UDPAddr{
+				Port: int(reqAddr.Port),
+				IP: net.IPv4(127, 0, 0, 1),
+			})
+		} else {
+			c, err = net.ListenUDP("udp", nil)
+		}
 		if err != nil {
 			return nil, err
 		}
